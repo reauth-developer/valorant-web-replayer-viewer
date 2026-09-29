@@ -30,6 +30,7 @@
     --body: "Barlow", -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     font: 13px/1.4 var(--body); -webkit-font-smoothing: antialiased; overflow: hidden; }
   .app { display: grid; grid-template-columns: 1fr 340px; grid-template-rows: 1fr auto; height: 100vh; }
@@ -225,6 +226,32 @@
   .summary .rows span:last-child { color: var(--muted); }
   .summary .who.a { color: var(--team-a); font-weight: 600; } .summary .who.b { color: var(--team-b); font-weight: 600; }
 
+  /* ── Scoreboard overlay ───────────────────────────────────────────────── */
+  .board { position: absolute; inset: 64px 24px 24px; z-index: 8; overflow: auto; padding: 18px 22px;
+    background: rgba(11,18,32,0.94); border: 1px solid var(--line); border-radius: 12px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .board h3 { margin: 0 0 12px; font: 700 20px/1 var(--display); display: flex; align-items: baseline; gap: 12px; }
+  .board h3 .a { color: var(--team-a); } .board h3 .b { color: var(--team-b); }
+  .board table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-bottom: 14px; }
+  .board th { font: 600 11px var(--body); color: var(--muted); text-align: right; padding: 4px 8px; }
+  .board th:first-child, .board td:first-child { text-align: left; }
+  .board td { padding: 5px 8px; text-align: right; font: 600 15px var(--display); border-top: 1px solid var(--line); }
+  .board td:first-child { font: 600 13px var(--body); display: flex; align-items: center; gap: 8px; }
+  .board td img { width: 24px; height: 24px; border-radius: 5px; }
+  .board tr.a td:first-child { box-shadow: inset 3px 0 0 var(--team-a); padding-left: 10px; }
+  .board tr.b td:first-child { box-shadow: inset 3px 0 0 var(--team-b); padding-left: 10px; }
+  .board td.best { color: var(--spike); }
+  .board .econ { display: grid; grid-template-columns: 70px 1fr; gap: 6px 10px; align-items: end; }
+  .board .econ .lbl { font-size: 11px; color: var(--muted); align-self: center; }
+  .board .bars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; height: 64px; align-items: end; }
+  .board .bars .col { display: flex; gap: 1px; align-items: end; height: 100%; }
+  .board .bars .col i { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
+  .board .bars .col i.a { background: var(--team-a); } .board .bars .col i.b { background: var(--team-b); }
+  .board .bars .col.cur i { outline: 1px solid var(--text); }
+  .board .rn { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; font: 500 10px var(--display); color: var(--muted); text-align: center; }
+  .board .rn span.a { color: var(--team-a); } .board .rn span.b { color: var(--team-b); }
+  .board .note { color: var(--muted); font-size: 11px; margin-top: 10px; }
+
   /* ── Loading / folder picker ──────────────────────────────────────────── */
   .loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     background: rgba(11,18,32,0.94); z-index: 10; font-size: 13px; color: var(--muted); flex-direction: column; gap: 12px; }
@@ -273,6 +300,7 @@
       </div>
     </div>
     <div class="caption" id="caption" hidden></div>
+    <div class="board" id="board" hidden></div>
     <div class="summary" id="summary" hidden></div>
     <div class="loading" id="loading">
       <div id="ld-msg">loading…</div>
@@ -333,6 +361,7 @@
       <button id="arrows" class="on" title="Where each player is looking">Facing</button>
       <button id="util">Utility</button>
       <button id="deaths" title="Keep every death this round on the map">Deaths</button>
+      <button id="board-btn" title="Match scoreboard (Tab)">Scoreboard</button>
       <button id="keys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
     </div>
     <div class="keys" id="keys-pop" hidden>
@@ -340,6 +369,7 @@
       <div><kbd>←</kbd> <kbd>→</kbd> Back or forward 5 s (<kbd>Shift</kbd> 1 s)</div>
       <div><kbd>[</kbd> <kbd>]</kbd> Previous or next round</div>
       <div><kbd>1</kbd>–<kbd>5</kbd> Speed 0.5× to 8×</div>
+      <div><kbd>Tab</kbd> Match scoreboard</div>
       <div><kbd>Esc</kbd> Stop following a player</div>
       <div class="hint">Click a player to follow them. The address bar always links to the current moment.</div>
     </div>
@@ -2084,6 +2114,23 @@
       }
     }
 
+    // === Kill lines: killer → victim for a second after each kill ============
+    for (const kk of realKills) {
+      if (kk.round !== curRoundIdx) continue;
+      const dt = tBomb - kk.bombSec;
+      if (dt < 0 || dt > 1.2) continue;
+      const kl = kk.playerLocations.find(pl => pl.subject === kk.killer);
+      if (!kl) continue;
+      const a0 = project(kl.location.x, kl.location.y), a1 = project(kk.vx, kk.vy);
+      const killerP = mdPlayers.find(p => p.subject === kk.killer);
+      const k = 1 - dt / 1.2;
+      ctx.globalAlpha = k;
+      ctx.strokeStyle = killerP?.teamId === 'Blue' ? '#63d3ff' : '#ff6b5e';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(a0.x, a0.y); ctx.lineTo(a1.x, a1.y); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     // === Deaths layer: every death so far this round stays on the map ========
     if (deathsOn) {
       for (const kk of realKills) {
@@ -2508,7 +2555,9 @@
       hud.tag.classList.add('win-' + sideOf(rr.winningTeam));
     } else if (plantSec !== null && sec >= plantSec) {
       const left = defuseSec !== null && sec >= defuseSec ? 0 : SPIKE_SEC - (sec - plantSec);
-      hud.phase.textContent = defuseSec !== null && sec >= defuseSec ? `Round ${curRoundIdx + 1}, spike defused` : `Round ${curRoundIdx + 1}, spike planted`;
+      const site = rr.plantLocation ? calloutAt(rr.plantLocation.x, rr.plantLocation.y) : '';
+      hud.phase.textContent = defuseSec !== null && sec >= defuseSec ? `Round ${curRoundIdx + 1}, spike defused`
+        : `Round ${curRoundIdx + 1}, spike planted${site ? ' at ' + site : ''}`;
       hud.clock.textContent = left > 0 ? left.toFixed(1) : '0.0';
       hud.clock.classList.add(left <= 10 && left > 0 ? 'urgent' : 'spike');
       hud.tag.textContent = '';
@@ -2609,6 +2658,78 @@
     requestAnimationFrame(loop);
   }
 
+  // === Scoreboard: match-wide stats per player =============================
+  // ADR and HS% come from timeline.json hits (HS% = headshot share of hits
+  // on bodies, head + body + legs); first bloods and clutches from the round
+  // story.
+  const boardEl = document.getElementById('board');
+  function paintBoard() {
+    const players = mdPlayers.slice().sort((a, b) => (a.teamId === b.teamId ? (b.stats?.kills ?? 0) - (a.stats?.kills ?? 0) : a.teamId === 'Blue' ? -1 : 1));
+    const nRounds = rounds.length;
+    const dmg = {}, hits = {}, heads = {}, fb = {}, clutch = {};
+    if (TL) for (const d of timeline.damage) {
+      const att = timeline.players[d[2]], vic = timeline.players[d[1]]; if (!att || att === vic) continue;
+      const at = playerBySubject.get(att)?.teamId, vt = playerBySubject.get(vic)?.teamId; if (!at || at === vt) continue;
+      dmg[att] = (dmg[att] || 0) + d[3];
+      if (d[4] <= 2) { hits[att] = (hits[att] || 0) + 1; if (d[4] === 1) heads[att] = (heads[att] || 0) + 1; }
+    }
+    roundKills.forEach((ks, ri) => {
+      const first = ks.slice().sort((a, b) => a.roundTimeSec - b.roundTimeSec)[0];
+      if (first?.killer) fb[first.killer] = (fb[first.killer] || 0) + 1;
+      const rr = realRounds[ri]; const story = roundStory[ri];
+      if (story?.clutch && rr?.winningTeam) {
+        // The clutcher: the winning side's last player alive.
+        const w = rr.winningTeam; const alive = new Set(mdPlayers.filter(p => p.teamId === w).map(p => p.subject));
+        for (const k of ks) alive.delete(k.victim);
+        if (alive.size === 1) { const c = [...alive][0]; clutch[c] = (clutch[c] || 0) + 1; }
+      }
+    });
+    const rows = players.map(p => {
+      const sub = p.subject;
+      return { p, k: p.stats?.kills ?? 0, d: p.stats?.deaths ?? 0, a: p.stats?.assists ?? 0,
+        adr: TL ? Math.round((dmg[sub] || 0) / nRounds) : null,
+        hs: TL && hits[sub] ? Math.round(100 * (heads[sub] || 0) / hits[sub]) : null,
+        fb: fb[sub] || 0, cl: clutch[sub] || 0 };
+    });
+    const best = key => Math.max(...rows.map(r => r[key] ?? -1));
+    const b = { k: best('k'), adr: best('adr'), hs: best('hs'), fb: best('fb'), cl: best('cl') };
+    const cell = (r, key, fmt = v => v) => `<td class="${r[key] != null && r[key] === b[key] && r[key] > 0 ? 'best' : ''}">${r[key] == null ? '–' : fmt(r[key])}</td>`;
+    const score = { Blue: 0, Red: 0 };
+    for (const rr of realRounds) if (rr?.winningTeam) score[rr.winningTeam]++;
+    let html = `<h3><span class="a">Team A ${score.Blue}</span><span class="b">${score.Red} Team B</span></h3>
+      <table><thead><tr><th>Player</th><th>K</th><th>D</th><th>A</th><th>+/−</th><th>ADR</th><th>HS%</th><th>First bloods</th><th>Clutches</th></tr></thead><tbody>`;
+    for (const r of rows) {
+      const a = agentMeta(r.p.characterId);
+      html += `<tr class="${sideOf(r.p.teamId)}"><td><img src="${a.icon || ''}" alt="">${a.name}</td>${cell(r, 'k')}<td>${r.d}</td><td>${r.a}</td>
+        <td>${r.k - r.d > 0 ? '+' : ''}${r.k - r.d}</td>${cell(r, 'adr')}${cell(r, 'hs', v => v + '%')}${cell(r, 'fb')}${cell(r, 'cl')}</tr>`;
+    }
+    html += `</tbody></table>`;
+    // Team credits at the start of each round (from the previous round's end).
+    if (TL) {
+      const bank = rounds.map((_, ri) => {
+        const t = { Blue: 0, Red: 0 };
+        for (const p of mdPlayers) {
+          const i = TL.idxOfSubject.get(p.subject); if (i === undefined) continue;
+          const c = TL.creditsAt(i, ri, firstOfHalf.has(ri)); if (c != null) t[p.teamId] += c;
+        }
+        return t;
+      });
+      const max = Math.max(1, ...bank.map(t => Math.max(t.Blue, t.Red)));
+      html += `<div class="econ"><div class="lbl">Credits at round start</div><div class="bars">${bank.map((t, ri) =>
+        `<div class="col ${ri === curRoundIdx ? 'cur' : ''}" title="Round ${ri + 1}: Team A ${t.Blue.toLocaleString('en-US')}, Team B ${t.Red.toLocaleString('en-US')}"><i class="a" style="height:${100 * t.Blue / max}%"></i><i class="b" style="height:${100 * t.Red / max}%"></i></div>`).join('')}</div>
+        <div></div><div class="rn">${rounds.map((_, ri) => { const w = realRounds[ri]?.winningTeam; return `<span class="${w ? sideOf(w) : ''}">${ri + 1}</span>`; }).join('')}</div></div>
+        <div class="note">Health, ADR and HS% are rebuilt from hits in the replay; armor and heals aren't recorded, so health is approximate.</div>`;
+    }
+    boardEl.innerHTML = html;
+  }
+  function toggleBoard(show) {
+    const on = show ?? boardEl.hidden;
+    if (on) paintBoard();
+    boardEl.hidden = !on;
+    document.getElementById('board-btn').classList.toggle('on', on);
+  }
+  document.getElementById('board-btn').addEventListener('click', () => toggleBoard());
+
   // Keyboard: space play/pause, ←/→ 5 s (shift: 1 s), [ ] rounds, 1–5 speed.
   const SPEEDS = [0.5, 1, 2, 4, 8];
   function togglePlay() { playBtn.click(); }
@@ -2621,8 +2742,9 @@
       case 'ArrowRight': e.preventDefault(); holdUntil = 0; setVirtualSec(virtualSec + step); break;
       case '[': applyRound(curRoundIdx - 1); break;
       case ']': applyRound(curRoundIdx + 1); break;
-      case 'Escape': if (!keysPop.hidden) keysPop.hidden = true; else setFocus(null); break;
+      case 'Escape': if (!keysPop.hidden) keysPop.hidden = true; else if (!boardEl.hidden) toggleBoard(false); else setFocus(null); break;
       case '?': keysPop.hidden = !keysPop.hidden; break;
+      case 'Tab': e.preventDefault(); toggleBoard(); break;
       default:
         if (/^[1-5]$/.test(e.key)) { speed = SPEEDS[+e.key - 1]; speedBtn.textContent = speed + '×'; }
     }
