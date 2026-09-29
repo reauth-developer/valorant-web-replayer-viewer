@@ -71,6 +71,24 @@
   .prow .p-name { font-weight: 600; color: var(--text); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .prow .p-kda { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
   .prow .p-loc { color: var(--muted); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prow { align-items: start; padding: 6px 0; }
+  .prow .p-line { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+  .prow .p-line .p-name { min-width: 0; }
+  .prow .wpn { height: 16px; width: 56px; object-fit: contain; object-position: right center; opacity: 0.95; filter: brightness(1.6); flex: none; }
+  .prow .cr { font: 600 12px var(--display); color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+  .prow .p-status { margin-top: 4px; gap: 6px; }
+  .prow .p-hp { flex: 1; height: 3px; border-radius: 2px; background: var(--panel-3); overflow: hidden; }
+  .prow .p-hp i { display: block; height: 100%; width: 100%; transition: width 0.15s; }
+  .team.a .prow .p-hp i { background: var(--team-a); } .team.b .prow .p-hp i { background: var(--team-b); }
+  .prow .p-hp i.low { background: var(--spike) !important; } .prow .p-hp i.crit { background: var(--accent) !important; }
+  .prow .ult { display: inline-flex; gap: 2px; flex: none; }
+  .prow .ult i { width: 3px; height: 7px; border-radius: 1px; background: var(--panel-3); }
+  .prow .ult i.on { background: var(--ult); }
+  .prow .ult.ready i { background: var(--ult); box-shadow: 0 0 5px var(--ult); }
+  .team h3 small { display: block; margin-top: 3px; font: 500 11px var(--body); color: var(--muted); letter-spacing: 0; }
+  .prow { cursor: pointer; border-radius: 6px; }
+  .prow:hover { background: rgba(255,255,255,0.03); }
+  .prow.focus { background: var(--panel-2); box-shadow: inset 2px 0 0 var(--text); }
   .prow.dead { opacity: 0.4; }
   .prow.dead .agent-ico { filter: grayscale(1); }
 
@@ -85,6 +103,10 @@
   .frow.spike .ic { background: rgba(255,184,74,0.15); color: var(--spike); }
   .frow.ult .ic { background: rgba(196,123,255,0.15); color: var(--ult); }
   .frow.cur { background: var(--panel-2); }
+  .frow .fw { height: 12px; vertical-align: -1px; margin: 0 4px; filter: brightness(1.5); }
+  .frow .a { color: var(--team-a); } .frow .b { color: var(--team-b); }
+  .frow { cursor: pointer; }
+  .frow:hover { background: rgba(255,255,255,0.03); }
 
   /* ── Deck: transport, timeline and the round strip, full width ───────── */
   .deck { grid-column: 1 / -1; background: var(--panel); border-top: 1px solid var(--line);
@@ -122,6 +144,13 @@
     font: 500 12px var(--body); transition: background 0.12s, color 0.12s; }
   .layers button:hover { color: var(--text); }
   .layers button.on { background: var(--panel-3); color: var(--text); }
+  .deck { position: relative; }
+  .keys { position: absolute; right: 18px; bottom: calc(100% + 8px); z-index: 20; width: 300px; padding: 12px 14px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; display: grid; gap: 7px; font-size: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+  .keys kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 4px; background: var(--panel-3);
+    border: 1px solid var(--line); font: 600 11px var(--body); text-align: center; color: var(--text); }
+  .keys .hint { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
   /* Round strip: one row per half, the winner painted into each chip */
   .rounds { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; }
@@ -181,6 +210,7 @@
   .caption .badge.gold { background: var(--spike); color: #1a1200; }
   .caption .badge.dim { background: var(--panel-3); color: var(--text); }
   .caption .loc { color: var(--muted); }
+  .caption .wicon { height: 16px; vertical-align: -3px; margin: 0 6px; filter: brightness(1.5); }
 
   .summary { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 90%);
     padding: 18px 22px; border-radius: 12px; background: rgba(11,18,32,0.92); border: 1px solid var(--line);
@@ -256,7 +286,7 @@
         <div class="drop" id="drop">
           <button class="primary" id="pickDir">Choose folder…</button>
           <button id="pickFiles">Choose files…</button>
-          <div class="hint">or drop the folder here. Needs <code>positions.json</code>; <code>events.json</code>, <code>meta.json</code>, <code>match-details.json</code> and <code>abilities.json</code> are optional.</div>
+          <div class="hint">or drop the folder here. Needs <code>positions.json</code>; <code>events.json</code>, <code>meta.json</code>, <code>match-details.json</code>, <code>abilities.json</code> and <code>timeline.json</code> are optional.</div>
         </div>
         <div class="matches" id="matches" hidden></div>
         <input type="file" id="fileDir" webkitdirectory multiple hidden>
@@ -274,8 +304,8 @@
 
     <div class="sb-section">
       <div class="teams">
-        <div class="team a"><h3>Team A</h3><div id="team-a"></div></div>
-        <div class="team b"><h3>Team B</h3><div id="team-b"></div></div>
+        <div class="team a"><h3>Team A<small id="buy-a"></small></h3><div id="team-a"></div></div>
+        <div class="team b"><h3>Team B<small id="buy-b"></small></h3><div id="team-b"></div></div>
       </div>
     </div>
 
@@ -302,6 +332,16 @@
       <button id="trails" class="on">Trails</button>
       <button id="arrows" class="on" title="Where each player is looking">Facing</button>
       <button id="util">Utility</button>
+      <button id="deaths" title="Keep every death this round on the map">Deaths</button>
+      <button id="keys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
+    </div>
+    <div class="keys" id="keys-pop" hidden>
+      <div><kbd>Space</kbd> Play or pause</div>
+      <div><kbd>←</kbd> <kbd>→</kbd> Back or forward 5 s (<kbd>Shift</kbd> 1 s)</div>
+      <div><kbd>[</kbd> <kbd>]</kbd> Previous or next round</div>
+      <div><kbd>1</kbd>–<kbd>5</kbd> Speed 0.5× to 8×</div>
+      <div><kbd>Esc</kbd> Stop following a player</div>
+      <div class="hint">Click a player to follow them. The address bar always links to the current moment.</div>
     </div>
     <div class="rounds" id="rounds"></div>
     <span id="rd-head" hidden></span><button id="prev" hidden></button><button id="next" hidden></button>
@@ -318,7 +358,7 @@
   // When positions.json isn't served next to the page, ask for a processed
   // output folder and answer the relative fetch() calls below from those
   // files. A folder with several output/<match>/ subfolders shows a match list.
-  const DATA_FILES = ['positions.json', 'events.json', 'meta.json', 'match-details.json', 'abilities.json'];
+  const DATA_FILES = ['positions.json', 'events.json', 'meta.json', 'match-details.json', 'abilities.json', 'timeline.json'];
   const served = await fetch('positions.json', { method: 'HEAD' }).then(r => r.ok).catch(() => false);
   if (!served) {
     const files = await pickReplayFolder();
@@ -449,14 +489,23 @@
 
   // match-details.json is OPTIONAL. When absent we fall back to BombPlayerState
   // ProfileName + CompetitiveTier + team — anonymous-roster mode.
-  const [data, events, mapImg, mDetails, spikeImg, abilities] = await Promise.all([
+  const [data, events, mapImg, mDetails, spikeImg, abilities, timeline, weaponsResp] = await Promise.all([
     fetch('positions.json').then(r => r.json()),
     fetch('events.json').then(r => r.json()).catch(() => []),
     loadImg(mapRecord.displayIcon || ''),
     fetch('match-details.json').then(r => r.json()).catch(() => null),
     loadImg('spike.png'),
     fetch('abilities.json').then(r => r.json()).catch(() => []),
+    // Damage, shots, flashes, ult and credits (successor pipeline only).
+    fetch('timeline.json').then(r => r.json()).catch(() => null),
+    fetch('https://valorant-api.com/v1/weapons').then(r => r.json()).catch(() => ({ data: [] })),
   ]);
+  // Weapon icons and prices by display name ("Vandal").
+  const weaponInfo = {};
+  for (const w of weaponsResp.data || []) {
+    weaponInfo[w.displayName] = { icon: w.killStreamIcon || w.displayIcon, cost: w.shopData?.cost ?? 0,
+      category: (w.shopData?.categoryText || w.category || '').replace('EEquippableCategory::', '') };
+  }
   // Agents lookup, live from valorant-api, keyed by characterId for the
   // (optional) match-details path. Anonymous mode never reads it.
   const agentsListResp = await fetch('https://valorant-api.com/v1/agents?isPlayableCharacter=true').then(r => r.json()).catch(() => ({ data: [] }));
@@ -692,9 +741,10 @@
       return `<div class="prow" data-subject="${p.subject}" title="${name} · ${a.role}">
         <img class="agent-ico" src="${a.icon || ''}" alt="${a.name}" onerror="this.style.visibility='hidden'">
         <div class="p-meta">
-          <div class="p-name">${a.name}</div>
-          <div class="p-kda">${k}/${d}/${ast}${score ? ' · ' + score : ''}</div>
+          <div class="p-line"><span class="p-name">${a.name}</span><img class="wpn" alt="" hidden></div>
+          <div class="p-line"><span class="p-kda">${k}/${d}/${ast}${score ? ' · ' + score : ''}</span><span class="cr"></span></div>
           <div class="p-loc"></div>
+          <div class="p-line p-status"><div class="p-hp"><i></i></div><span class="ult"></span></div>
         </div>
       </div>`;
     }).join('');
@@ -962,6 +1012,85 @@
     return p ? agentMeta(p.characterId) : null;
   }
 
+  // === timeline.json: health, shots, flashes, ult, credits ==================
+  // All times are the replay clock in ms, the same clock as tBomb * 1000.
+  const TL = (() => {
+    if (!timeline) return null;
+    const n = timeline.players.length;
+    const actorOf = timeline.players.map(sub => puuidToActor[sub]);
+    const idxOfActor = new Map(actorOf.map((ai, i) => [ai, i]));
+    const idxOfSubject = new Map(timeline.players.map((sub, i) => [sub, i]));
+    const wname = i => (i >= 0 ? timeline.weapons[i] : null);
+    const byVictim = Array.from({ length: n }, () => []);
+    for (const d of timeline.damage) if (d[1] >= 0) byVictim[d[1]].push(d);
+    const shotsBy = Array.from({ length: n }, () => []);
+    for (const x of timeline.shots) shotsBy[x[1]].push(x);
+    const flashesOn = Array.from({ length: n }, () => []);
+    for (const f of timeline.flashes) flashesOn[f[1]].push(f);
+    // Round windows on the replay clock: a round's damage runs from the end of
+    // the previous round to the end of this one (buy phase included).
+    const lowerMs = i => (i > 0 ? rounds[i - 1].endBombSec * 1000 : 0);
+    const upperMs = i => rounds[i].endBombSec * 1000 + 1000;
+    // Health isn't replicated, so rebuild it: 100 at round start, minus damage
+    // taken. Armor and heals aren't visible either, so each life's pool is
+    // max(100, damage taken until that life ends); the bar reaches 0 exactly
+    // at death. Lives split on death (revives start a new one).
+    const lives = rounds.map((_, ri) => Array.from({ length: n }, (_, i) => {
+      const ev = byVictim[i].filter(d => d[0] > lowerMs(ri) && d[0] <= upperMs(ri));
+      const out = []; let cur = { from: lowerMs(ri), ev: [], total: 0 };
+      for (const d of ev) {
+        cur.ev.push(d); cur.total += d[3];
+        if (d[5]) { cur.to = d[0]; cur.pool = Math.max(100, cur.total); out.push(cur); cur = { from: d[0], ev: [], total: 0 }; }
+      }
+      cur.to = Infinity; cur.pool = Math.max(100, cur.total); out.push(cur);
+      return out;
+    }));
+    function health(i, ri, tMs) {
+      const life = lives[ri]?.[i]?.find(l => tMs >= l.from && tMs < l.to);
+      if (!life) return 0;
+      let taken = 0; for (const d of life.ev) { if (d[0] <= tMs) taken += d[3]; else break; }
+      return Math.max(0, 1 - taken / life.pool);
+    }
+    // Current gun: the latest shot this round; before the first shot, the gun
+    // last fired in an earlier round (kept if the player survived). Pistol
+    // rounds start from nothing.
+    function weaponAt(i, ri, tMs, pistol) {
+      const list = shotsBy[i]; let w = null, carried = null;
+      const lo = lowerMs(ri);
+      for (const x of list) { if (x[0] > tMs) break; if (x[0] > lo) w = wname(x[6]); else carried = wname(x[6]); }
+      return w || (pistol ? null : carried);
+    }
+    function flashedFor(i, tMs) {
+      for (const f of flashesOn[i]) { const end = f[0] + (f[3] + 0.4) * 1000; if (tMs >= f[0] && tMs <= end) return 1 - (tMs - f[0]) / (end - f[0]); }
+      return 0;
+    }
+    // Ult: points over time plus the most points the player ever banked, which
+    // stands in for the agent's ult cost (not in the replay or valorant-api).
+    const ultMax = timeline.players.map((_, i) => Math.max(6, ...(timeline.ult[i] || []).map(u => u[1] || 0)));
+    function ultAt(i, tMs) {
+      let st = { points: 0, active: false };
+      for (const u of timeline.ult[i] || []) { if (u[0] > tMs) break; st = { points: u[1], active: !!u[2] }; }
+      return { ...st, max: ultMax[i] };
+    }
+    // Credits available when round ri starts: the previous round's end
+    // credits; 800 on pistol rounds (first round of each half).
+    const econ = timeline.players.map((_, i) => new Map((timeline.economy[i] || []).map(r => [r[0], r])));
+    function creditsAt(i, ri, pistol) {
+      if (pistol) return 800;
+      return econ[i].get(ri - 1)?.[1] ?? null;
+    }
+    // Buy level from the most expensive gun each player fires this round.
+    function spend(i, ri) {
+      let best = 0;
+      for (const x of shotsBy[i]) {
+        if (x[0] <= lowerMs(ri) || x[0] > upperMs(ri)) continue;
+        best = Math.max(best, weaponInfo[wname(x[6])]?.cost ?? 0);
+      }
+      return best;
+    }
+    return { n, actorOf, idxOfActor, idxOfSubject, wname, health, weaponAt, flashedFor, ultAt, creditsAt, spend, lowerMs };
+  })();
+
   // === Per-actor real-aim snapshots from match-details kills =================
   // Every kill has playerLocations with viewRadians for ALL 10 players. That
   // gives us thousands of TRUE aim samples scattered across the match. We
@@ -1114,6 +1243,7 @@
   }
 
   // Event feed
+  const sideOf = teamId => teamId === 'Blue' ? 'a' : 'b';
   const feedEl = document.getElementById('feed');
   // Merge real kills + spike events into a single feed, sorted in-round.
   const feedItems = [];
@@ -1125,7 +1255,13 @@
     feedItems.push({
       kind: 'kill', round: k.round, secInRound: k.roundTimeSec,
       // damageItem is a weapon name in .vrf-derived data, a UUID from Riot.
-      label: `${ka.name} → ${va.name}` + (mDetails?.source === 'vrf' && k.weapon ? ` · ${k.weapon}` : ''),
+      // damageItem is a weapon name in .vrf-derived data, a UUID from Riot.
+      label: (() => {
+        const w = mDetails?.source === 'vrf' ? k.weapon : null;
+        const icon = w && weaponInfo[w]?.icon;
+        const mid = icon ? `<img class="fw" src="${icon}" alt="${w}" title="${w}">` : '→';
+        return `<span class="${sideOf(killerP?.teamId)}">${ka.name}</span> ${mid} <span class="${sideOf(victimP?.teamId)}">${va.name}</span>`;
+      })(),
       icon: '💀',
       teamSide: killerP?.teamId === 'Blue' ? 'a' : 'b',
     });
@@ -1346,11 +1482,12 @@
 
   // Toggles, persisted across reloads. Bump version key to invalidate old saves.
   const TOGGLE_VER = 'v2';
-  const loadToggle = (k, d) => { const v = localStorage.getItem('vrf.' + TOGGLE_VER + '.' + k); return v === null ? d : v === '1'; };
-  const saveToggle = (k, v) => localStorage.setItem('vrf.' + TOGGLE_VER + '.' + k, v ? '1' : '0');
+  const loadToggle = (k, d) => { try { const v = localStorage.getItem('vrf.' + TOGGLE_VER + '.' + k); return v === null ? d : v === '1'; } catch { return d; } };
+  const saveToggle = (k, v) => { try { localStorage.setItem('vrf.' + TOGGLE_VER + '.' + k, v ? '1' : '0'); } catch { /* storage blocked */ } };
   let trailsOn = loadToggle('trails', true);
   let arrowsOn = loadToggle('arrows', true);
   let utilOn   = loadToggle('util', true);
+  let deathsOn = loadToggle('deaths', false);
   console.log('[viewer] toggles:', { trails: trailsOn, arrows: arrowsOn, util: utilOn });
   // Trail = positions over the last TRAIL_SEC seconds. Sample-based so it
   // looks smooth regardless of playback speed.
@@ -1772,8 +1909,29 @@
         continue;
       }
 
+      // Following one player: fade the rest and draw the followed player's
+      // field of view (VALORANT's horizontal FOV is 103°).
+      const focus = typeof focusSubject !== 'undefined' ? focusSubject : null;
+      const isFocus = focus && actorToPuuid[a] === focus;
+      if (focus && !isFocus) ctx.globalAlpha = 0.35;
+      if (isFocus) {
+        const yaw = getActorFacing(a, sTarget);
+        if (yaw !== null) {
+          const half = (103 / 2) * Math.PI / 180, R = 2600, steps = 18;
+          const g = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, Math.hypot(project(p.wx + R, p.wy).x - sp.x, project(p.wx + R, p.wy).y - sp.y));
+          g.addColorStop(0, 'rgba(255,255,255,0.28)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.moveTo(sp.x, sp.y);
+          for (let k = 0; k <= steps; k++) {
+            const ang = yaw - half + (2 * half * k) / steps;
+            const q = project(p.wx + R * Math.cos(ang), p.wy + R * Math.sin(ang));
+            ctx.lineTo(q.x, q.y);
+          }
+          ctx.closePath(); ctx.fill();
+        }
+      }
       // Halo + colored ring
-      ctx.shadowColor = col; ctx.shadowBlur = 10;
+      ctx.shadowColor = col; ctx.shadowBlur = isFocus ? 18 : 10;
       ctx.beginPath(); ctx.arc(sp.x, sp.y, DOT_R + 1, 0, Math.PI * 2);
       ctx.fillStyle = col; ctx.fill();
       ctx.shadowBlur = 0;
@@ -1794,6 +1952,34 @@
       // dark outline
       ctx.strokeStyle = '#0a0c12'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(sp.x, sp.y, DOT_R, 0, Math.PI * 2); ctx.stroke();
+
+      if (TL) {
+        const ti = TL.idxOfActor.get(a);
+        if (ti !== undefined) {
+          const tMs = tBomb * 1000;
+          // Flashed: white bloom that fades with the blind.
+          const fl = TL.flashedFor(ti, tMs);
+          if (fl > 0) {
+            ctx.save(); ctx.globalAlpha = 0.85 * fl; ctx.shadowColor = '#fff'; ctx.shadowBlur = 22;
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.beginPath(); ctx.arc(sp.x, sp.y, DOT_R + 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+          }
+          // Ult in use: violet orbit ring.
+          const ult = TL.ultAt(ti, tMs);
+          if (ult.active) {
+            ctx.strokeStyle = 'rgba(196,123,255,0.95)'; ctx.lineWidth = 2;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath(); ctx.arc(sp.x, sp.y, DOT_R + 5, tBomb * 3, tBomb * 3 + Math.PI * 2); ctx.stroke();
+            ctx.setLineDash([]);
+          }
+          // Health bar under the icon.
+          const hp = TL.health(ti, curRoundIdx, tMs);
+          const bw = 26, bx = sp.x - bw / 2, by = sp.y + DOT_R + 4;
+          ctx.fillStyle = 'rgba(8,12,20,0.85)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 5);
+          ctx.fillStyle = hp > 0.5 ? col : hp > 0.25 ? '#ffb84a' : '#ff4655';
+          ctx.fillRect(bx, by, bw * hp, 3);
+        }
+      }
 
       // Direction indicator: short team-colored line. Prefer REAL aim
       // (viewRadians from match-details, sampled at every kill moment for
@@ -1823,6 +2009,49 @@
           }
         }
       }
+      ctx.globalAlpha = 1;
+    }
+
+    // === Shots and damage (timeline.json) =====================================
+    if (TL) {
+      const tMs = tBomb * 1000;
+      const lo = TL.lowerMs(curRoundIdx);
+      // Tracers: a short-lived streak along each shot's attack vector.
+      const TRACE_MS = 140;
+      for (const x of timeline.shots) {
+        if (x[0] < tMs - TRACE_MS) continue;
+        if (x[0] > tMs) break;
+        if (x[0] <= lo) continue;
+        const ai = TL.actorOf[x[1]]; if (ai === undefined) continue;
+        const a0 = project(x[2], x[3]), a1 = project(x[2] + x[4] * 2200, x[3] + x[5] * 2200);
+        const k = 1 - (tMs - x[0]) / TRACE_MS;
+        const g = ctx.createLinearGradient(a0.x, a0.y, a1.x, a1.y);
+        g.addColorStop(0, `rgba(255,244,214,${0.95 * k})`); g.addColorStop(1, 'rgba(255,244,214,0)');
+        ctx.strokeStyle = g; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(a0.x, a0.y); ctx.lineTo(a1.x, a1.y); ctx.stroke();
+      }
+      // Damage numbers rise from the victim and fade; headshots in amber.
+      const NUM_MS = 900;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      for (const d of timeline.damage) {
+        if (d[0] < tMs - NUM_MS) continue;
+        if (d[0] > tMs) break;
+        if (d[0] <= lo) continue;
+        const ai = TL.actorOf[d[1]]; if (ai === undefined) continue;
+        const pos = getActorPos(ai, sTarget); if (!pos) continue;
+        const sp = project(pos.wx, pos.wy);
+        const age = (tMs - d[0]) / NUM_MS;
+        const head = d[4] === 1;
+        ctx.globalAlpha = 1 - age;
+        ctx.font = `800 ${head ? 16 : 13}px "Barlow Condensed", sans-serif`;
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(8,12,20,0.9)';
+        const label = `${Math.round(d[3])}${d[6] ? ' ⟂' : ''}`;
+        const y = sp.y - 16 - age * 18;
+        ctx.strokeText(label, sp.x + 14, y);
+        ctx.fillStyle = head ? '#ffb84a' : '#ffffff';
+        ctx.fillText(label, sp.x + 14, y);
+      }
+      ctx.globalAlpha = 1;
     }
 
     // === Real aim cones at kill moments (uses viewRadians, REAL aim) =========
@@ -1851,6 +2080,25 @@
         ctx.moveTo(sk.x, sk.y); ctx.lineTo(sf.x, sf.y);
         ctx.stroke();
         ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // === Deaths layer: every death so far this round stays on the map ========
+    if (deathsOn) {
+      for (const kk of realKills) {
+        if (kk.round !== curRoundIdx || kk.bombSec > tBomb) continue;
+        const victim = mdPlayers.find(p => p.subject === kk.victim);
+        const sp = project(kk.vx, kk.vy);
+        const c = victim?.teamId === 'Blue' ? '#63d3ff' : '#ff6b5e';
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = 'rgba(8,12,20,0.85)';
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = c; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sp.x - 3.5, sp.y - 3.5); ctx.lineTo(sp.x + 3.5, sp.y + 3.5);
+        ctx.moveTo(sp.x + 3.5, sp.y - 3.5); ctx.lineTo(sp.x - 3.5, sp.y + 3.5);
+        ctx.stroke();
         ctx.globalAlpha = 1;
       }
     }
@@ -1990,6 +2238,11 @@
   const trailsBtn = document.getElementById('trails');
   const arrowsBtn = document.getElementById('arrows');
   const utilBtn = document.getElementById('util');
+  const deathsBtn = document.getElementById('deaths');
+  const keysPop = document.getElementById('keys-pop');
+  deathsBtn.classList.toggle('on', deathsOn);
+  deathsBtn.addEventListener('click', () => { deathsOn = !deathsOn; deathsBtn.classList.toggle('on', deathsOn); saveToggle('deaths', deathsOn); render(); });
+  document.getElementById('keys').addEventListener('click', () => { keysPop.hidden = !keysPop.hidden; });
 
   // Playback is driven by round bomb-clock SECONDS. 1× = real game speed.
   // We track virtualSec (seconds offset into the current round), then on
@@ -2039,14 +2292,15 @@
     render();
     if (typeof highlightFeed === 'function') highlightFeed();
     if (typeof updateHud === 'function') updateHud();
+    if (!playing && typeof writeHash === 'function') writeHash();
   }
   function setFrame() { /* deprecated — kept as no-op for legacy callers */ }
 
-  scrub.addEventListener('input', () => setVirtualSec(+scrub.value / SCRUB_PER_SEC));
+  scrub.addEventListener('input', () => { holdUntil = 0; setVirtualSec(+scrub.value / SCRUB_PER_SEC); });
   playBtn.addEventListener('click', () => {
     if (virtualSec >= curRound.durationSec - 0.05) setVirtualSec(0);
     playing = !playing;
-    playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); if (!playing) { holdUntil = 0; writeHash(); }
   });
   speedBtn.addEventListener('click', () => {
     const speeds = [0.5, 1, 2, 4, 8];
@@ -2075,7 +2329,6 @@
     summary: document.getElementById('summary'), marks: document.getElementById('marks'),
   };
   const ROUND_SEC = 100, SPIKE_SEC = 45, CAPTION_SEC = 6;
-  const sideOf = teamId => teamId === 'Blue' ? 'a' : 'b';
   const teamName = teamId => teamId === 'Blue' ? 'Team A' : 'Team B';
   const playerBySubject = new Map(mdPlayers.map(p => [p.subject, p]));
   const agentName = subject => agentMeta(playerBySubject.get(subject)?.characterId).name;
@@ -2116,9 +2369,18 @@
       if (killer && alive[killer.teamId] === 1 && alive[victim.teamId] >= 1) badges.push([`1v${alive[victim.teamId]}`, 'dim']);
       const loc = calloutAt(k.vx, k.vy);
       const kName = killer ? agentName(k.killer) : 'Utility';
-      const html = `<span class="who ${killer ? sideOf(killer.teamId) : ''}">${kName}</span> → `
+      // Headshot: the fatal hit's region in timeline.json.
+      if (TL) {
+        const vi = TL.idxOfSubject.get(k.victim);
+        const fatal = timeline.damage.find(d => d[1] === vi && d[5] && Math.abs(d[0] - k.bombSec * 1000) < 600);
+        if (fatal?.[4] === 1) badges.unshift(['Headshot', 'gold']);
+        if (fatal?.[6]) badges.push(['Wallbang', 'dim']);
+      }
+      const wIcon = k.weapon && weaponInfo[k.weapon]?.icon;
+      const weaponHtml = wIcon ? `<img class="wicon" src="${wIcon}" alt="${k.weapon}" title="${k.weapon}">`
+        : k.weapon ? `<span class="loc">${k.weapon}</span>` : '→';
+      const html = `<span class="who ${killer ? sideOf(killer.teamId) : ''}">${kName}</span> ${weaponHtml} `
         + `<span class="who ${sideOf(victim.teamId)}">${agentName(k.victim)}</span>`
-        + (k.weapon ? ` <span class="loc">· ${k.weapon}</span>` : '')
         + (loc ? ` <span class="loc">· ${loc}</span>` : '')
         + badges.map(([b, c]) => ` <span class="badge ${c}">${b}</span>`).join('');
       lines.push({ sec: k.roundTimeSec, html, alive: { ...alive } });
@@ -2130,6 +2392,18 @@
     if (rr?.defuseRoundTime > 0) {
       const who = rr.bombDefuser ? `<span class="who ${sideOf(playerBySubject.get(rr.bombDefuser)?.teamId)}">${agentName(rr.bombDefuser)}</span> defuses` : 'Spike defused';
       lines.push({ sec: rr.defuseRoundTime / 1000, html: `${who} <span class="badge">Defused</span>` });
+    }
+    // Flashes that blind an enemy for a meaningful time.
+    if (TL) {
+      const lo = TL.lowerMs(ri), start = r.startBombSec * 1000;
+      for (const f of timeline.flashes) {
+        if (f[0] <= lo || f[0] > r.endBombSec * 1000 || f[3] < 0.8 || f[2] < 0) continue;
+        const target = timeline.players[f[1]], caster = timeline.players[f[2]];
+        const ct = playerBySubject.get(caster)?.teamId, tt = playerBySubject.get(target)?.teamId;
+        if (!ct || ct === tt) continue;
+        lines.push({ sec: (f[0] - start) / 1000,
+          html: `<span class="who ${sideOf(ct)}">${agentName(caster)}</span> blinds <span class="who ${sideOf(tt)}">${agentName(target)}</span> <span class="loc">for ${f[3].toFixed(1)} s</span>` });
+      }
     }
     lines.sort((a, b) => a.sec - b.sec);
     // Clutch: the winner's last player alive against 2+ at any point.
@@ -2164,6 +2438,52 @@
   }
 
   let lastCaptionKey = '', lastLocPaint = 0;
+  // Pistol rounds: the first round of each half (credits reset to 800).
+  const firstOfHalf = new Set([0]);
+  {
+    const rr = mDetails?.roundResults || [];
+    const sw = rr.findIndex(r => r.attackingTeam && rr[0]?.attackingTeam && r.attackingTeam !== rr[0].attackingTeam);
+    if (sw > 0) firstOfHalf.add(sw);
+  }
+  function buyLabel(avg, pistol) {
+    if (pistol) return 'Pistol round';
+    if (avg >= 2700) return 'Full buy';
+    if (avg >= 1600) return 'Half buy';
+    if (avg >= 700) return 'Force';
+    return 'Eco';
+  }
+  function paintGear(dead) {
+    const tMs = (clockBySample[curStreamIdx] || 0) * 1000;
+    const pistol = firstOfHalf.has(curRoundIdx);
+    const team = { Blue: { credits: 0, known: 0, spend: [] }, Red: { credits: 0, known: 0, spend: [] } };
+    for (const row of document.querySelectorAll('.prow[data-subject]')) {
+      const sub = row.dataset.subject;
+      const i = TL.idxOfSubject.get(sub); if (i === undefined) continue;
+      const tid = playerBySubject.get(sub)?.teamId;
+      const hp = dead.has(sub) ? 0 : TL.health(i, curRoundIdx, tMs);
+      const bar = row.querySelector('.p-hp i');
+      bar.style.width = `${hp * 100}%`;
+      bar.classList.toggle('low', hp <= 0.5 && hp > 0.25); bar.classList.toggle('crit', hp <= 0.25);
+      const w = TL.weaponAt(i, curRoundIdx, tMs, pistol);
+      const img = row.querySelector('.wpn');
+      const icon = w && weaponInfo[w]?.icon;
+      if (icon) { if (img.src !== icon) img.src = icon; img.hidden = false; img.title = w; } else img.hidden = true;
+      const cr = TL.creditsAt(i, curRoundIdx, pistol);
+      row.querySelector('.cr').textContent = cr != null ? `${cr.toLocaleString('en-US')} cr` : '';
+      const u = TL.ultAt(i, tMs);
+      const ultEl = row.querySelector('.ult');
+      const pips = Array.from({ length: u.max }, (_, k) => `<i class="${k < u.points ? 'on' : ''}"></i>`).join('');
+      if (ultEl.dataset.k !== `${u.points}/${u.max}/${u.active}`) { ultEl.innerHTML = pips; ultEl.dataset.k = `${u.points}/${u.max}/${u.active}`; }
+      ultEl.classList.toggle('ready', u.points >= u.max && !u.active);
+      ultEl.title = u.active ? 'Ultimate in use' : `Ultimate ${u.points} / ${u.max}`;
+      if (tid && team[tid]) { if (cr != null) { team[tid].credits += cr; team[tid].known++; } team[tid].spend.push(TL.spend(i, curRoundIdx)); }
+    }
+    for (const [tid, el] of [['Blue', document.getElementById('buy-a')], ['Red', document.getElementById('buy-b')]]) {
+      const t = team[tid]; if (!t.spend.length) { el.textContent = ''; continue; }
+      const avg = t.spend.reduce((a, b) => a + b, 0) / t.spend.length;
+      el.textContent = buyLabel(avg, pistol) + (t.known ? `, ${t.credits.toLocaleString('en-US')} cr` : '');
+    }
+  }
   function updateHud() {
     const rr = realRounds[curRoundIdx];
     const story = roundStory[curRoundIdx];
@@ -2238,7 +2558,7 @@
 
     // Sidebar: where everyone is (throttled), dead players dimmed.
     const now = performance.now();
-    if (now - lastLocPaint > 150) {
+    if (!playing || now - lastLocPaint > 150) {
       lastLocPaint = now;
       for (const row of document.querySelectorAll('.prow[data-subject]')) {
         const sub = row.dataset.subject;
@@ -2249,6 +2569,7 @@
         const p = ai !== undefined ? getActorPos(ai, curStreamIdx) : null;
         locEl.textContent = p && !p.stale ? calloutAt(p.wx, p.wy) : '';
       }
+      if (TL) paintGear(dead);
     }
   }
 
@@ -2265,23 +2586,85 @@
     setVirtualSec(sec);
   });
 
+  // Playing through the end of a round holds on the summary card, then moves
+  // on to the next round and keeps playing.
+  const HOLD_MS = 2500;
+  let holdUntil = 0;
   let lastT = performance.now();
   function loop(t) {
     const dt = t - lastT; lastT = t;
     if (playing) {
-      const dsec = (dt / 1000) * speed;
-      const next = virtualSec + dsec;
-      if (next >= curRound.durationSec) {
-        setVirtualSec(curRound.durationSec);
-        playing = false; playBtn.textContent = '▶';
+      if (holdUntil) {
+        if (t >= holdUntil) {
+          holdUntil = 0;
+          if (curRoundIdx < rounds.length - 1) { applyRound(curRoundIdx + 1); }
+          else { playing = false; playBtn.textContent = '▶'; }
+        }
       } else {
-        setVirtualSec(next);
+        const next = virtualSec + (dt / 1000) * speed;
+        if (next >= curRound.durationSec) { setVirtualSec(curRound.durationSec); holdUntil = t + HOLD_MS; }
+        else setVirtualSec(next);
       }
     }
     requestAnimationFrame(loop);
   }
 
-  applyRound(0);
+  // Keyboard: space play/pause, ←/→ 5 s (shift: 1 s), [ ] rounds, 1–5 speed.
+  const SPEEDS = [0.5, 1, 2, 4, 8];
+  function togglePlay() { playBtn.click(); }
+  window.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input[type="text"], textarea')) return;
+    const step = e.shiftKey ? 1 : 5;
+    switch (e.key) {
+      case ' ': e.preventDefault(); togglePlay(); break;
+      case 'ArrowLeft': e.preventDefault(); holdUntil = 0; setVirtualSec(virtualSec - step); break;
+      case 'ArrowRight': e.preventDefault(); holdUntil = 0; setVirtualSec(virtualSec + step); break;
+      case '[': applyRound(curRoundIdx - 1); break;
+      case ']': applyRound(curRoundIdx + 1); break;
+      case 'Escape': if (!keysPop.hidden) keysPop.hidden = true; else setFocus(null); break;
+      case '?': keysPop.hidden = !keysPop.hidden; break;
+      default:
+        if (/^[1-5]$/.test(e.key)) { speed = SPEEDS[+e.key - 1]; speedBtn.textContent = speed + '×'; }
+    }
+  });
+
+  // Shareable moment: #r=<round>&t=<seconds> (round is 1-based).
+  function readHash() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    const r = +h.get('r'), t = +h.get('t');
+    return { r: Number.isFinite(r) && r >= 1 ? r - 1 : 0, t: Number.isFinite(t) ? t : 0, p: h.get('p') };
+  }
+  let hashTimer = 0;
+  function writeHash() {
+    clearTimeout(hashTimer);
+    hashTimer = setTimeout(() => {
+      const h = new URLSearchParams();
+      h.set('r', curRoundIdx + 1); h.set('t', virtualSec.toFixed(1));
+      if (focusSubject) h.set('p', focusSubject.slice(0, 8));
+      history.replaceState(null, '', '#' + h.toString());
+    }, 250);
+  }
+
+  // Follow a player: click a roster row (again, or Esc, to clear). The map
+  // dims everyone else and draws the followed player's field of view.
+  let focusSubject = null;
+  function setFocus(sub) {
+    focusSubject = sub && sub !== focusSubject ? sub : null;
+    for (const row of document.querySelectorAll('.prow[data-subject]')) row.classList.toggle('focus', row.dataset.subject === focusSubject);
+    render(); writeHash();
+  }
+  document.querySelector('.teams').addEventListener('click', (e) => {
+    const row = e.target.closest('.prow[data-subject]'); if (row) setFocus(row.dataset.subject);
+  });
+  window.__viewerFocus = () => focusSubject;
+
+  {
+    const h = readHash();
+    applyRound(Math.min(rounds.length - 1, h.r));
+    if (h.t) setVirtualSec(h.t);
+    if (h.p) { const sub = mdPlayers.find(p => p.subject.startsWith(h.p))?.subject; if (sub) setFocus(sub); }
+  }
+  if (false) applyRound(0);
   step(100, '');
   document.getElementById('loading').remove();
   requestAnimationFrame(loop);
