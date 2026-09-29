@@ -49,6 +49,72 @@
     border-radius: 5px; cursor: pointer; font-family: inherit; }
   .rounds button:hover { background: #242938; }
   .rounds button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .rounds button.win-a { box-shadow: inset 0 -2px 0 var(--team-a); }
+  .rounds button.win-b { box-shadow: inset 0 -2px 0 var(--team-b); }
+
+  /* HUD over the map: alive counts, phase, clock */
+  .topbar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; z-index: 5; pointer-events: none; }
+  .topbar .legend { position: static; flex: none; }
+  .hud { flex: 1; min-width: max-content; display: flex; justify-content: center; align-items: stretch;
+    gap: 2px; z-index: 5; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .hud > div { background: rgba(7,9,13,0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--line); }
+  .hud .alive { display: flex; align-items: center; gap: 10px; padding: 6px 14px; border-radius: 8px 0 0 8px; }
+  .hud .alive.b { border-radius: 0 8px 8px 0; }
+  .hud .alive b { font-size: 26px; font-weight: 800; line-height: 1; }
+  .hud .alive span { font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  .hud .alive.a b { color: var(--team-a); } .hud .alive.b b { color: var(--team-b); }
+  .hud .center { text-align: center; padding: 4px 18px; min-width: 150px; white-space: nowrap; }
+  .hud .phase { font-size: 10px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; }
+  .hud .clock { font-size: 22px; font-weight: 800; line-height: 1.1; }
+  .hud .clock.win-a, .hud .clock.win-b { font-size: 15px; letter-spacing: 0.06em; padding-top: 3px; }
+  .hud .clock.win-a { color: var(--team-a); } .hud .clock.win-b { color: var(--team-b); }
+  .hud .clock.spike { color: var(--spike); }
+  .hud .clock.urgent { color: var(--accent); animation: pulse 0.6s steps(2) infinite; }
+  .hud .tag { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; min-height: 14px; color: var(--spike); }
+  .hud .tag.win-a { color: var(--team-a); } .hud .tag.win-b { color: var(--team-b); }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+
+  /* Play-by-play caption at the bottom of the map */
+  .caption { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: min(720px, 92%);
+    padding: 8px 16px; border-radius: 8px; background: rgba(7,9,13,0.86); border: 1px solid var(--line);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: 13.5px; z-index: 5;
+    pointer-events: none; text-align: center; line-height: 1.35; }
+  .caption.fresh { animation: capin 0.25s ease-out; }
+  @keyframes capin { from { transform: translate(-50%, 8px); opacity: 0; } }
+  .caption .who { font-weight: 700; }
+  .caption .who.a { color: var(--team-a); } .caption .who.b { color: var(--team-b); }
+  .caption .badge { display: inline-block; margin-left: 8px; padding: 1px 6px; border-radius: 4px; font-size: 10px;
+    font-weight: 800; letter-spacing: 0.08em; background: var(--accent); color: #fff; vertical-align: 1px; }
+  .caption .badge.gold { background: var(--spike); color: #1a1200; }
+  .caption .badge.dim { background: var(--panel-2); color: var(--muted); }
+  .caption .loc { color: var(--muted); }
+
+  /* End-of-round summary card */
+  .summary { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 90%);
+    padding: 18px 22px; border-radius: 12px; background: rgba(7,9,13,0.9); border: 1px solid var(--line);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 6; pointer-events: none;
+    animation: capin 0.3s ease-out; }
+  .summary h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.04em; }
+  .summary h3.a { color: var(--team-a); } .summary h3.b { color: var(--team-b); }
+  .summary .why { color: var(--muted); font-size: 12px; margin: 2px 0 12px; }
+  .summary .score { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .summary .score .a { color: var(--team-a); } .summary .score .b { color: var(--team-b); }
+  .summary .rows { display: grid; gap: 5px; font-size: 12px; }
+  .summary .rows div { display: flex; justify-content: space-between; gap: 12px; }
+  .summary .rows span:last-child { color: var(--muted); }
+
+  /* Kill / spike marks over the scrub bar */
+  .scrubwrap { position: relative; flex: 1; }
+  .scrubwrap input { width: 100%; }
+  .marks { position: absolute; left: 0; right: 0; top: -6px; height: 6px; pointer-events: none; }
+  .marks i { position: absolute; top: 0; width: 2px; height: 6px; transform: translateX(-1px); border-radius: 1px; }
+  .marks i.a { background: var(--team-a); } .marks i.b { background: var(--team-b); }
+  .marks i.spike { width: 4px; height: 8px; top: -2px; background: var(--spike); transform: translateX(-2px); }
+  .marks i.defuse { width: 4px; height: 8px; top: -2px; background: #fff; transform: translateX(-2px); }
+  .prow .p-loc { color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prow.dead { opacity: 0.45; }
+  .prow.dead .agent-ico { filter: grayscale(1); }
 
   .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .team h3 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
@@ -134,10 +200,24 @@
 <div class="app">
   <div class="stage">
     <canvas id="mini"></canvas>
+    <div class="topbar">
     <div class="legend">
       <div class="map-name"><b id="map-name">Split</b></div>
       <div>round <b id="rd">—</b> · <span id="bounds">—</span></div>
     </div>
+    <!-- Live match state, updated every frame from the .vrf-derived data -->
+    <div class="hud" id="hud">
+      <div class="alive a"><b id="hud-alive-a">5</b><span id="hud-team-a">TEAM A</span></div>
+      <div class="center">
+        <div class="phase" id="hud-phase">ROUND 1</div>
+        <div class="clock" id="hud-clock">1:40</div>
+        <div class="tag" id="hud-tag"></div>
+      </div>
+      <div class="alive b"><span id="hud-team-b">TEAM B</span><b id="hud-alive-b">5</b></div>
+    </div>
+    </div>
+    <div class="caption" id="caption" hidden></div>
+    <div class="summary" id="summary" hidden></div>
     <div class="loading" id="loading">
       <div id="ld-msg">loading…</div>
       <div class="bar"><i id="ld-bar"></i></div>
@@ -190,7 +270,7 @@
       </div>
       <div class="scrubrow">
         <button id="playBtn" class="primary">▶</button>
-        <input type="range" id="scrub" min="0" max="100" value="0">
+        <div class="scrubwrap"><div class="marks" id="marks"></div><input type="range" id="scrub" min="0" max="100" value="0"></div>
       </div>
       <div class="row">
         <button id="speed">1×</button>
@@ -585,11 +665,12 @@
       const k = p.stats?.kills ?? 0, d = p.stats?.deaths ?? 0, ast = p.stats?.assists ?? 0;
       const score = p.stats?.score ?? 0;
       const name = (p.gameName && p.gameName.length) ? `${p.gameName}#${p.tagLine}` : 'Anonymous';
-      return `<div class="prow" title="${name} · ${a.role}">
+      return `<div class="prow" data-subject="${p.subject}" title="${name} · ${a.role}">
         <img class="agent-ico" src="${a.icon || ''}" alt="${a.name}" onerror="this.style.visibility='hidden'">
         <div class="p-meta">
           <div class="p-name">${a.name}</div>
-          <div class="p-kda">${k}/${d}/${ast} · ${score}</div>
+          <div class="p-kda">${k}/${d}/${ast}${score ? ' · ' + score : ''}</div>
+          <div class="p-loc"></div>
         </div>
       </div>`;
     }).join('');
@@ -666,12 +747,17 @@
     vy: k.victimLocation?.y ?? 0,
     playerLocations: k.playerLocations || [],
     weapon: k.finishingDamage?.damageItem,
+    multikillLevel: k.multikillLevel || 1,
   }));
   // realRounds MUST be defined before the round-re-derive block (it reads
   // rr.plantRoundTime / rr.defuseRoundTime).
   const realRounds = (mDetails?.roundResults || []).map((rr, i) => ({
     roundNum: rr.roundNum,
     winningTeam: rr.winningTeam,
+    attackingTeam: rr.attackingTeam || null,
+    roundResult: rr.roundResult || '',
+    bombPlanter: rr.bombPlanter || null,
+    bombDefuser: rr.bombDefuser || null,
     plantLocation: rr.plantLocation,
     plantRoundTime: rr.plantRoundTime,
     defuseLocation: rr.defuseLocation,
@@ -1881,6 +1967,7 @@
     scrub.max = Math.ceil(curRound.durationSec * SCRUB_PER_SEC);
     setVirtualSec(0);
     paintFeed();
+    if (typeof paintMarks === 'function') paintMarks();
   }
   function setVirtualSec(sec) {
     const maxSec = curRound.durationSec;
@@ -1894,6 +1981,7 @@
     timerMsEl.textContent = '.' + Math.floor((s % 1) * 10);
     render();
     if (typeof highlightFeed === 'function') highlightFeed();
+    if (typeof updateHud === 'function') updateHud();
   }
   function setFrame() { /* deprecated — kept as no-op for legacy callers */ }
 
@@ -1920,6 +2008,188 @@
   utilBtn.addEventListener('click', () => {
     utilOn = !utilOn; utilBtn.classList.toggle('on', utilOn); saveToggle('util', utilOn); render();
   });
+  // === Live state: HUD, callouts, play-by-play, round summary ===============
+  // Everything here derives from match-details.json (kills, round results)
+  // and the map record's callouts; no extra pipeline output is needed.
+  const hud = {
+    phase: document.getElementById('hud-phase'), clock: document.getElementById('hud-clock'),
+    tag: document.getElementById('hud-tag'), aliveA: document.getElementById('hud-alive-a'),
+    aliveB: document.getElementById('hud-alive-b'), caption: document.getElementById('caption'),
+    summary: document.getElementById('summary'), marks: document.getElementById('marks'),
+  };
+  const ROUND_SEC = 100, SPIKE_SEC = 45, CAPTION_SEC = 6;
+  const sideOf = teamId => teamId === 'Blue' ? 'a' : 'b';
+  const teamName = teamId => teamId === 'Blue' ? 'Team A' : 'Team B';
+  const playerBySubject = new Map(mdPlayers.map(p => [p.subject, p]));
+  const agentName = subject => agentMeta(playerBySubject.get(subject)?.characterId).name;
+
+  // Callouts ("A Main", "Mid Courtyard") come with the map record.
+  const callouts = (mapRecord?.callouts || []).filter(c => c.location);
+  function calloutAt(wx, wy) {
+    let best = null, bd = Infinity;
+    for (const c of callouts) {
+      const d = (c.location.x - wx) ** 2 + (c.location.y - wy) ** 2;
+      if (d < bd) { bd = d; best = c; }
+    }
+    if (!best) return '';
+    const sup = best.superRegionName, reg = best.regionName;
+    return sup && reg && reg !== sup ? `${sup} ${reg}` : (reg || sup || '');
+  }
+
+  // Per-round narration built once: kills tagged with first blood, trades,
+  // multikills and the man-advantage after the kill.
+  const roundKills = rounds.map(() => []);
+  for (const k of realKills) if (roundKills[k.round]) roundKills[k.round].push(k);
+  const roundStory = rounds.map((r, ri) => {
+    const ks = roundKills[ri].slice().sort((a, b) => a.roundTimeSec - b.roundTimeSec);
+    const alive = { Blue: 5, Red: 5 };
+    const rr = realRounds[ri];
+    const lines = [];
+    ks.forEach((k, i) => {
+      const killer = playerBySubject.get(k.killer), victim = playerBySubject.get(k.victim);
+      if (!victim) return;
+      alive[victim.teamId]--;
+      const badges = [];
+      if (i === 0) badges.push(['FIRST BLOOD', 'gold']);
+      const prev = ks[i - 1];
+      if (prev && killer && k.roundTimeSec - prev.roundTimeSec <= 3 && prev.killer === k.victim && prev.victim !== k.killer)
+        badges.push(['TRADE', '']);
+      const mk = k.multikillLevel || 1;
+      if (mk >= 2) badges.push([['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'QUAD KILL', 'ACE'][Math.min(mk, 5)], mk >= 4 ? 'gold' : '']);
+      if (killer && alive[killer.teamId] === 1 && alive[victim.teamId] >= 1) badges.push([`1v${alive[victim.teamId]}`, 'dim']);
+      const loc = calloutAt(k.vx, k.vy);
+      const kName = killer ? agentName(k.killer) : 'Utility';
+      const html = `<span class="who ${killer ? sideOf(killer.teamId) : ''}">${kName}</span> → `
+        + `<span class="who ${sideOf(victim.teamId)}">${agentName(k.victim)}</span>`
+        + (k.weapon ? ` <span class="loc">· ${k.weapon}</span>` : '')
+        + (loc ? ` <span class="loc">· ${loc}</span>` : '')
+        + badges.map(([b, c]) => ` <span class="badge ${c}">${b}</span>`).join('');
+      lines.push({ sec: k.roundTimeSec, html, alive: { ...alive } });
+    });
+    if (rr?.plantRoundTime > 0 && rr.plantLocation) {
+      const who = rr.bombPlanter ? `<span class="who ${sideOf(playerBySubject.get(rr.bombPlanter)?.teamId)}">${agentName(rr.bombPlanter)}</span> plants the spike` : 'Spike planted';
+      lines.push({ sec: rr.plantRoundTime / 1000, html: `${who} <span class="loc">· ${calloutAt(rr.plantLocation.x, rr.plantLocation.y)}</span>` });
+    }
+    if (rr?.defuseRoundTime > 0) {
+      const who = rr.bombDefuser ? `<span class="who ${sideOf(playerBySubject.get(rr.bombDefuser)?.teamId)}">${agentName(rr.bombDefuser)}</span> defuses` : 'Spike defused';
+      lines.push({ sec: rr.defuseRoundTime / 1000, html: `${who} <span class="badge">DEFUSED</span>` });
+    }
+    lines.sort((a, b) => a.sec - b.sec);
+    // Clutch: the winner's last player alive against 2+ at any point.
+    let clutch = null;
+    for (const l of lines) {
+      if (!l.alive || !rr?.winningTeam) continue;
+      const w = rr.winningTeam, o = w === 'Blue' ? 'Red' : 'Blue';
+      if (l.alive[w] === 1 && l.alive[o] >= 2) clutch = `1v${l.alive[o]}`;
+    }
+    return { lines, clutch };
+  });
+
+  // Round buttons coloured by winner; scrub marks per round.
+  [...roundsEl.querySelectorAll('button')].forEach((b, i) => {
+    const w = realRounds[i]?.winningTeam; if (w) b.classList.add('win-' + sideOf(w));
+  });
+  function paintMarks() {
+    const dur = curRound.durationSec;
+    const pct = sec => `${Math.max(0, Math.min(100, sec / dur * 100))}%`;
+    let html = '';
+    for (const k of roundKills[curRoundIdx]) {
+      const killer = playerBySubject.get(k.killer);
+      html += `<i class="${killer ? sideOf(killer.teamId) : ''}" style="left:${pct(k.roundTimeSec)}" title="${agentName(k.victim)} dies"></i>`;
+    }
+    const rr = realRounds[curRoundIdx];
+    if (rr?.plantRoundTime > 0) html += `<i class="spike" style="left:${pct(rr.plantRoundTime / 1000)}"></i>`;
+    if (rr?.defuseRoundTime > 0) html += `<i class="defuse" style="left:${pct(rr.defuseRoundTime / 1000)}"></i>`;
+    hud.marks.innerHTML = html;
+  }
+
+  let lastCaptionKey = '', lastLocPaint = 0;
+  function updateHud() {
+    const rr = realRounds[curRoundIdx];
+    const story = roundStory[curRoundIdx];
+    const sec = virtualSec;
+    const ended = sec >= curRound.durationSec - 0.05;
+    // Alive counts from kills so far.
+    const alive = { Blue: 5, Red: 5 };
+    const dead = new Set();
+    for (const k of roundKills[curRoundIdx]) if (k.roundTimeSec <= sec) { const v = playerBySubject.get(k.victim); if (v) { alive[v.teamId]--; dead.add(k.victim); } }
+    hud.aliveA.textContent = Math.max(0, alive.Blue); hud.aliveB.textContent = Math.max(0, alive.Red);
+
+    const fmt = s => { s = Math.max(0, s); return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; };
+    const plantSec = rr?.plantRoundTime > 0 ? rr.plantRoundTime / 1000 : null;
+    const defuseSec = rr?.defuseRoundTime > 0 ? rr.defuseRoundTime / 1000 : null;
+    hud.clock.className = 'clock';
+    hud.tag.className = 'tag';
+    if (ended && rr?.winningTeam) {
+      hud.phase.textContent = `ROUND ${curRoundIdx + 1} · ${rr.roundResult || ''}`;
+      hud.clock.textContent = `${teamName(rr.winningTeam).toUpperCase()} WINS`;
+      hud.clock.classList.add('win-' + sideOf(rr.winningTeam));
+      hud.tag.textContent = story.clutch ? `${story.clutch} CLUTCH` : '';
+      hud.tag.classList.add('win-' + sideOf(rr.winningTeam));
+    } else if (plantSec !== null && sec >= plantSec) {
+      const left = defuseSec !== null && sec >= defuseSec ? 0 : SPIKE_SEC - (sec - plantSec);
+      hud.phase.textContent = defuseSec !== null && sec >= defuseSec ? `ROUND ${curRoundIdx + 1} · SPIKE DEFUSED` : `ROUND ${curRoundIdx + 1} · SPIKE PLANTED`;
+      hud.clock.textContent = left > 0 ? left.toFixed(1) : '0.0';
+      hud.clock.classList.add(left <= 10 && left > 0 ? 'urgent' : 'spike');
+      hud.tag.textContent = '';
+    } else {
+      const atk = rr?.attackingTeam;
+      hud.phase.textContent = `ROUND ${curRoundIdx + 1}` + (atk ? ` · ${teamName(atk).toUpperCase()} ATTACKING` : '');
+      hud.clock.textContent = fmt(ROUND_SEC - sec);
+      if (ROUND_SEC - sec <= 10) hud.clock.classList.add('urgent');
+      hud.tag.textContent = '';
+    }
+    // Man-advantage tag while the round is live.
+    if (!ended) {
+      const a = alive.Blue, b = alive.Red;
+      if (a !== b && Math.min(a, b) <= 2 && a > 0 && b > 0) { hud.tag.textContent = `${a} v ${b}` + (Math.min(a, b) === 1 ? ' · CLUTCH?' : ''); }
+      else if (a === 0 || b === 0) hud.tag.textContent = '';
+    }
+
+    // Caption: latest narration line within the last CAPTION_SEC seconds.
+    let line = null;
+    for (const l of story.lines) { if (l.sec <= sec && sec - l.sec <= CAPTION_SEC) line = l; }
+    if (line) {
+      const key = curRoundIdx + ':' + line.sec;
+      if (key !== lastCaptionKey) { hud.caption.innerHTML = line.html; hud.caption.classList.remove('fresh'); void hud.caption.offsetWidth; hud.caption.classList.add('fresh'); lastCaptionKey = key; }
+      hud.caption.hidden = false;
+    } else { hud.caption.hidden = true; lastCaptionKey = ''; }
+
+    // Summary card once the round is over.
+    if (ended && rr) {
+      const k = roundKills[curRoundIdx];
+      const byKiller = {};
+      for (const x of k) if (x.killer) byKiller[x.killer] = (byKiller[x.killer] || 0) + 1;
+      const top = Object.entries(byKiller).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const score = { Blue: 0, Red: 0 };
+      for (let i = 0; i <= curRoundIdx; i++) if (realRounds[i]?.winningTeam) score[realRounds[i].winningTeam]++;
+      const w = rr.winningTeam;
+      hud.summary.innerHTML = `
+        <h3 class="${w ? sideOf(w) : ''}">${w ? teamName(w) + ' wins' : 'Round over'}</h3>
+        <div class="why">${rr.roundResult || ''}${story.clutch ? ` · ${story.clutch} clutch` : ''}${k.length ? ` · ${k.length} kills` : ''}</div>
+        <div class="score"><span class="a">${score.Blue}</span> — <span class="b">${score.Red}</span></div>
+        <div class="rows">${top.map(([s, n]) => `<div><span class="who ${sideOf(playerBySubject.get(s)?.teamId)}">${agentName(s)}</span><span>${n} kill${n > 1 ? 's' : ''}</span></div>`).join('')}</div>`;
+      hud.summary.hidden = false;
+    } else hud.summary.hidden = true;
+
+    // Sidebar: where everyone is (throttled), dead players dimmed.
+    const now = performance.now();
+    if (now - lastLocPaint > 150) {
+      lastLocPaint = now;
+      for (const row of document.querySelectorAll('.prow[data-subject]')) {
+        const sub = row.dataset.subject;
+        const ai = puuidToActor[sub];
+        const locEl = row.querySelector('.p-loc');
+        if (dead.has(sub)) { row.classList.add('dead'); locEl.textContent = 'dead'; continue; }
+        row.classList.remove('dead');
+        const p = ai !== undefined ? getActorPos(ai, curStreamIdx) : null;
+        locEl.textContent = p && !p.stale ? calloutAt(p.wx, p.wy) : '';
+      }
+    }
+  }
+  document.getElementById('hud-team-a').textContent = 'Team A';
+  document.getElementById('hud-team-b').textContent = 'Team B';
+
   document.getElementById('prev').addEventListener('click', () => applyRound(curRoundIdx - 1));
   document.getElementById('next').addEventListener('click', () => applyRound(curRoundIdx + 1));
   roundsEl.addEventListener('click', e => {
