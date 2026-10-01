@@ -1,11 +1,16 @@
-# ValorantWebReplayer — viewer
+# Round Wise — demo
 
-Static build of the [ValorantWebReplayer](https://github.com/talhakoek/ValorantWebReplayer) viewer.
-Open the page, then choose a processed `output/<match>/` folder produced by
-`process.sh` / `process.ps1` (or a parent folder to pick from several matches).
-Press `?` in the viewer for keyboard shortcuts; the URL links to the current moment. Files are read in your browser and never uploaded.
+A demo of Round Wise, a team tool for reviewing rounds from VALORANT replays
+(`.vrf`): https://reauth-developer.github.io/valorant-web-replayer-viewer/
 
-The page fetches map images, agent icons and rank badges from `valorant-api.com`.
+- `demo/` holds seven analysed matches. Player IDs and match IDs are replaced
+  with random ones, and profile names are removed.
+- Replays you import in the Library are parsed in your browser and kept there;
+  nothing is uploaded.
 
-Not affiliated with, endorsed by, or sponsored by Riot Games. VALORANT is a
-trademark of Riot Games, Inc.
+The page fetches map images, agent icons and names from `valorant-api.com`.
+
+Round Wise isn't endorsed by Riot Games and doesn't reflect the views or
+opinions of Riot Games or anyone officially involved in producing or managing
+Riot Games properties. Riot Games, and all associated properties are
+trademarks or registered trademarks of Riot Games, Inc.
